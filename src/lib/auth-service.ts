@@ -80,12 +80,16 @@ export const authService = {
     birthday: string;
   }): Promise<RegisterResponse> {
     try {
+      const birthdayISO = userData.birthday
+        ? `${userData.birthday}T00:00:00Z`
+        : undefined;
+
       const response = await api.post(API_CONFIG.ENDPOINTS.USER_REGISTER, {
         name: userData.name,
         email: userData.email,
         password: userData.password, // Backend expects "password", not "password_hash"
         phone_number: userData.phone_number,
-        birthday: userData.birthday,
+        birthday: birthdayISO,
         auth_provider: 'local', // Default for our app
       });
       return response.data;
