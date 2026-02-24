@@ -1,5 +1,5 @@
 import axios, { AxiosError } from 'axios';
-import { API_CONFIG, LoginResponse, RegisterResponse, BackendError } from './api';
+import { API_CONFIG, LoginResponse, RegisterResponse, BackendError, UnifiedLoginData } from './api';
 
 // Configure axios defaults
 axios.defaults.timeout = 10000;
@@ -55,13 +55,17 @@ export const handleBackendError = (error: AxiosError): string => {
 // Auth service
 export const authService = {
   // Unified login (users and partners)
-  async unifiedLogin(email: string, password: string): Promise<LoginResponse> {
+  async unifiedLogin(email: string, password: string): Promise<UnifiedLoginData> {
     try {
-      const response = await api.post(API_CONFIG.ENDPOINTS.UNIFIED_LOGIN, {
+      const response = await api.post<LoginResponse>(API_CONFIG.ENDPOINTS.UNIFIED_LOGIN, {
         email,
         password,
       });
-      return response.data;
+      if (!response.data?.data) {
+        throw new Error('Invalid response from server');
+      }
+
+      return response.data.data;
     } catch (error) {
       throw new Error(handleBackendError(error as AxiosError));
     }
@@ -114,42 +118,18 @@ export const authService = {
     }
   },
 
-  // Store tokens in localStorage
-  storeTokens(tokens: { token: string; refresh_token: string }) {
-    localStorage.setItem('access_token', tokens.token);
-    localStorage.setItem('refresh_token', tokens.refresh_token);
-  },
+  // Redirect to appropriate frontend using handoff code
+  redirectToApp(loginData: UnifiedLoginData) {
+    const { redirect_url: redirectUrl, handoff_code: handoffCode } = loginData;
 
-  // Clear tokens
-  clearTokens() {
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('refresh_token');
-  },
-
-  // Get stored tokens
-  getTokens() {
-    return {
-      access_token: localStorage.getItem('access_token'),
-      refresh_token: localStorage.getItem('refresh_token'),
-    };
-  },
-
-  // Redirect to appropriate frontend
-  redirectToApp(type: 'user' | 'partner', tokens: { token: string; refresh_token: string }) {
-    // Store tokens first
-    this.storeTokens(tokens);
-    
-    // Create URL with tokens as query parameters for initial handoff
-    const params = new URLSearchParams({
-      token: tokens.token,
-      refresh_token: tokens.refresh_token,
-    });
-
-    if (type === 'user') {
-      window.location.href = `${API_CONFIG.REDIRECT_URLS.USERS_APP}?${params.toString()}`;
-    } else {
-      window.location.href = `${API_CONFIG.REDIRECT_URLS.PARTNERS_APP}?${params.toString()}`;
+    if (!redirectUrl || !handoffCode) {
+      throw new Error('Invalid redirect information from server');
     }
+
+    const destination = new URL(redirectUrl);
+    destination.searchParams.set('handoff_code', handoffCode);
+
+    window.location.href = destination.toString();
   },
 };
 

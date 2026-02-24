@@ -37,38 +37,30 @@ export interface BackendSuccessResponse<T = unknown> {
 }
 
 // Response types from backend
-export interface LoginResponse {
-  message: string;
+export interface UnifiedLoginData {
   type: 'user' | 'partner';
-  user?: {
-    id: number;
-    name: string;
-    email: string;
-    role: string;
-    status: string;
-  };
-  partner?: {
-    id: number;
-    name: string;
-    email: string;
-    approved: boolean;
-  };
-  token: string;
-  refresh_token: string;
+  redirect_url: string;
+  handoff_code: string;
 }
 
-export interface RegisterResponse {
-  message: string;
-  user?: {
-    id: number;
-    name: string;
-    email: string;
-    role: string;
-  };
-  partner?: {
-    id: number;
-    name: string;
-    email: string;
-    approved: boolean;
-  };
+export type LoginResponse = BackendSuccessResponse<UnifiedLoginData>;
+
+export interface UserSummary {
+  id: number;
+  name: string;
+  email: string;
+  role: string;
+  status?: string;
 }
+
+export interface PartnerSummary {
+  id: number;
+  name: string;
+  email: string;
+  approved: boolean;
+}
+
+export type RegisterResponse = BackendSuccessResponse<{
+  user?: UserSummary;
+  partner?: PartnerSummary;
+}>;

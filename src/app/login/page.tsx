@@ -31,16 +31,10 @@ export default function LoginPage() {
   const onSubmit = async (data: LoginFormData) => {
     setIsLoading(true);
     try {
-      const response = await authService.unifiedLogin(data.email, data.password);
-      
-      // Store tokens and redirect based on user type
-      const tokens = {
-        token: response.token,
-        refresh_token: response.refresh_token,
-      };
+      const loginData = await authService.unifiedLogin(data.email, data.password);
 
-      // Redirect to appropriate frontend
-      authService.redirectToApp(response.type, tokens);
+      // Redirect user/partner to their respective dashboard using handoff code
+      authService.redirectToApp(loginData);
       
     } catch (error: unknown) {
       const axiosError = error as { response?: { data?: { message?: string } } };
