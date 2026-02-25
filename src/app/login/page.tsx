@@ -1,11 +1,21 @@
 'use client';
 
+import Image from 'next/image';
 import { useState } from 'react';
 import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Eye, EyeOff, LogIn, Mail, Lock, Shield } from 'lucide-react';
+import {
+  Eye,
+  EyeOff,
+  LogIn,
+  Mail,
+  Lock,
+  Shield,
+  Apple,
+  Check,
+} from 'lucide-react';
 import authService from '@/lib/auth-service';
 
 const loginSchema = z.object({
@@ -15,9 +25,36 @@ const loginSchema = z.object({
 
 type LoginFormData = z.infer<typeof loginSchema>;
 
+const GoogleIcon = () => (
+  <svg
+    viewBox="0 0 24 24"
+    aria-hidden="true"
+    className="h-5 w-5"
+    focusable="false"
+  >
+    <path
+      fill="#EA4335"
+      d="M12 10.2v3.8h5.34c-.2 1.22-.95 2.27-2.03 2.96l3.28 2.54A9.73 9.73 0 0022 12c0-.73-.07-1.44-.2-2.1z"
+    />
+    <path
+      fill="#34A853"
+      d="M4.98 13.68a5.83 5.83 0 010-3.36L1.64 7.73A9.62 9.62 0 002 12a9.62 9.62 0 001.64 4.27z"
+    />
+    <path
+      fill="#FBBC05"
+      d="M12 5.2c1.44 0 2.73.5 3.74 1.49l2.8-2.8A9.64 9.64 0 0012 2.2a9.62 9.62 0 00-8.36 5.53l3.34 2.59C7.55 7.38 9.55 5.2 12 5.2z"
+    />
+    <path
+      fill="#4285F4"
+      d="M12 21.8c2.46 0 4.66-.8 6.24-2.17l-3.3-2.56c-.9.59-2.04.93-2.94.93-2.44 0-4.5-1.63-5.23-3.91l-3.32 2.59A9.64 9.64 0 0012 21.8z"
+    />
+  </svg>
+);
+
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
 
   const {
     register,
@@ -32,13 +69,11 @@ export default function LoginPage() {
     setIsLoading(true);
     try {
       const loginData = await authService.unifiedLogin(data.email, data.password);
-
-      // Redirect user/partner to their respective dashboard using handoff code
       authService.redirectToApp(loginData);
-      
     } catch (error: unknown) {
       const axiosError = error as { response?: { data?: { message?: string } } };
-      const errorMessage = axiosError.response?.data?.message || 'Error al iniciar sesión';
+      const errorMessage =
+        axiosError.response?.data?.message || 'Error al iniciar sesión';
       setError('root', { message: errorMessage });
     } finally {
       setIsLoading(false);
@@ -46,147 +81,164 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div className="text-center">
-          <div className="mx-auto h-16 w-16 flex items-center justify-center rounded-full bg-gradient-to-r from-indigo-600 to-purple-600">
-            <Shield className="h-8 w-8 text-white" />
-          </div>
-          <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
-            Iniciar Sesión
-          </h2>
-          <p className="mt-2 text-sm text-gray-600">
-            Accede a tu cuenta de ZassPass
-          </p>
-          <p className="mt-1 text-xs text-gray-500">
-            Portal unificado para usuarios y partners
-          </p>
-        </div>
+    <div className="relative min-h-screen w-full overflow-hidden bg-[#030303] text-white">
+      <div className="absolute inset-0">
+        <Image
+          src="/images/bg2.png"
+          alt="Fondo Zass Pass"
+          fill
+          className="object-cover opacity-80"
+          priority
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/70 to-[#030405]" />
+      </div>
 
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
-          <div className="space-y-4">
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                Correo Electrónico
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Mail className="h-5 w-5 text-gray-400" />
-                </div>
-                <input
-                  {...register('email')}
-                  type="email"
-                  autoComplete="email"
-                  className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
-                  placeholder="tu@email.com"
-                />
-              </div>
-              {errors.email && (
-                <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
-              )}
+      <div className="relative flex min-h-screen items-center justify-center px-4 py-10">
+        <div className="w-full max-w-md space-y-6">
+          <div className="flex flex-col items-center gap-2 text-center">
+            <span className="text-xs uppercase tracking-[0.6em] text-white/80">
+              ZASS PASS
+            </span>
+            <div className="h-14 w-14 rounded-2xl border border-white/10 bg-white/10 backdrop-blur-sm flex items-center justify-center">
+              <Shield className="h-7 w-7 text-white" />
+            </div>
+          </div>
+
+          <div className="rounded-[32px] border border-white/5 bg-[#0f0f12]/90 p-8 shadow-[0_25px_80px_rgba(0,0,0,0.65)] backdrop-blur-xl">
+            <div className="mb-8 text-center">
+              <p className="text-sm uppercase tracking-[0.5em] text-white">
+                Iniciar sesión
+              </p>
+              <p className="mt-2 text-xs text-white/60">
+                Portal unificado para usuarios y partners
+              </p>
             </div>
 
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                Contraseña
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Lock className="h-5 w-5 text-gray-400" />
+            <form className="space-y-5" onSubmit={handleSubmit(onSubmit)}>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <label
+                    htmlFor="email"
+                    className="text-sm font-medium text-white/80"
+                  >
+                    Correo electrónico
+                  </label>
+                  <div className="relative">
+                    <div className="pointer-events-none absolute inset-y-0 left-4 flex items-center text-slate-400">
+                      <Mail className="h-5 w-5" />
+                    </div>
+                    <input
+                      {...register('email')}
+                      type="email"
+                      autoComplete="email"
+                      placeholder="Ingresa tu correo"
+                      className="h-12 w-full rounded-full border border-white/10 bg-white text-sm text-slate-900 placeholder:text-slate-400 pl-12 pr-4 shadow-inner focus:border-[#44C2BE] focus:outline-none focus:ring-2 focus:ring-[#44C2BE]/30"
+                    />
+                  </div>
+                  {errors.email && (
+                    <p className="text-sm text-[#f87171]">{errors.email.message}</p>
+                  )}
                 </div>
-                <input
-                  {...register('password')}
-                  type={showPassword ? 'text' : 'password'}
-                  autoComplete="current-password"
-                  className="block w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
-                  placeholder="Tu contraseña"
-                />
+
+                <div className="space-y-2">
+                  <label
+                    htmlFor="password"
+                    className="text-sm font-medium text-white/80"
+                  >
+                    Contraseña
+                  </label>
+                  <div className="relative">
+                    <div className="pointer-events-none absolute inset-y-0 left-4 flex items-center text-slate-400">
+                      <Lock className="h-5 w-5" />
+                    </div>
+                    <input
+                      {...register('password')}
+                      type={showPassword ? 'text' : 'password'}
+                      autoComplete="current-password"
+                      placeholder="••••••••"
+                      className="h-12 w-full rounded-full border border-white/10 bg-white text-sm text-slate-900 placeholder:text-slate-400 pl-12 pr-12 shadow-inner focus:border-[#44C2BE] focus:outline-none focus:ring-2 focus:ring-[#44C2BE]/30"
+                    />
+                    <button
+                      type="button"
+                      className="absolute inset-y-0 right-4 flex items-center text-slate-500"
+                      onClick={() => setShowPassword((prev) => !prev)}
+                      aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                    >
+                      {showPassword ? (
+                        <EyeOff className="h-5 w-5" />
+                      ) : (
+                        <Eye className="h-5 w-5" />
+                      )}
+                    </button>
+                  </div>
+                  {errors.password && (
+                    <p className="text-sm text-[#f87171]">
+                      {errors.password.message}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {errors.root && (
+                <div className="rounded-2xl border border-[#f87171]/30 bg-[#f87171]/10 px-4 py-3 text-sm text-[#fca5a5]">
+                  {errors.root.message}
+                </div>
+              )}
+
+              <div className="flex items-center justify-between text-xs text-white/70">
                 <button
                   type="button"
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                  onClick={() => setShowPassword(!showPassword)}
+                  onClick={() => setRememberMe((prev) => !prev)}
+                  className="flex items-center gap-2 font-medium"
                 >
-                  {showPassword ? (
-                    <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-600" />
-                  ) : (
-                    <Eye className="h-5 w-5 text-gray-400 hover:text-gray-600" />
-                  )}
+                  <span
+                    className={`flex h-4 w-4 items-center justify-center rounded border ${
+                      rememberMe
+                        ? 'border-[#44C2BE] bg-[#44C2BE]'
+                        : 'border-white/40'
+                    }`}
+                  >
+                    {rememberMe && <Check className="h-3 w-3 text-black" />}
+                  </span>
+                  Recordarme
                 </button>
+                <Link
+                  href="/forgot-password"
+                  className="font-medium text-white hover:text-[#44C2BE] transition-colors"
+                >
+                  ¿Olvidaste tu contraseña?
+                </Link>
               </div>
-              {errors.password && (
-                <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
-              )}
-            </div>
-          </div>
 
-          {errors.root && (
-            <div className="rounded-md bg-red-50 p-4 border border-red-200">
-              <p className="text-sm text-red-800">{errors.root.message}</p>
-            </div>
-          )}
-
-          <div>
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 transform hover:scale-105"
-            >
-              {isLoading ? (
-                <div className="flex items-center">
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                  Iniciando sesión...
-                </div>
-              ) : (
-                <>
-                  <LogIn className="h-5 w-5 mr-2" />
-                  Iniciar Sesión
-                </>
-              )}
-            </button>
-          </div>
-
-          <div className="space-y-4">
-            <div className="text-center">
-              <Link
-                href="/forgot-password"
-                className="text-sm font-medium text-indigo-600 hover:text-indigo-500 transition-colors"
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="flex w-full items-center justify-center gap-2 rounded-full bg-[#44C2BE] py-3 text-base font-semibold text-slate-900 transition hover:bg-[#3aa5a6] disabled:cursor-not-allowed disabled:opacity-70"
               >
-                ¿Olvidaste tu contraseña?
-              </Link>
-            </div>
+                {isLoading ? (
+                  <>
+                    <span className="h-5 w-5 animate-spin rounded-full border-2 border-slate-900 border-t-transparent" />
+                    Iniciando sesión...
+                  </>
+                ) : (
+                  <>
+                    <LogIn className="h-5 w-5" />
+                    Iniciar sesión
+                  </>
+                )}
+              </button>
+            </form>
 
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300" />
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-gradient-to-br from-blue-50 to-indigo-100 text-gray-500">
-                  ¿No tienes una cuenta?
-                </span>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
+            <div className="mt-8 text-center text-sm text-white/70">
+              ¿No tienes una cuenta?
               <Link
                 href="/register/user"
-                className="flex justify-center items-center py-2 px-4 border border-blue-300 rounded-lg text-sm font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+                className="ml-2 font-semibold text-[#44C2BE] hover:text-[#36a5a1]"
               >
-                Soy Usuario
-              </Link>
-              <Link
-                href="/register/partner"
-                className="flex justify-center items-center py-2 px-4 border border-purple-300 rounded-lg text-sm font-medium text-purple-700 bg-purple-50 hover:bg-purple-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-colors"
-              >
-                Soy Partner
+                Regístrate
               </Link>
             </div>
           </div>
-        </form>
-
-        <div className="mt-8 text-center">
-          <p className="text-xs text-gray-500">
-            Al iniciar sesión serás redirigido automáticamente a tu panel correspondiente
-          </p>
         </div>
       </div>
     </div>
