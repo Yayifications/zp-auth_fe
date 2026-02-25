@@ -24,3 +24,7 @@ body {
   color: var(--foreground);
   font-family: var(--font-poppins), Arial, Helvetica, sans-serif;
 }
+
+.font-display {
+  font-family: var(--font-nasalization), var(--font-poppins), sans-serif;
+}

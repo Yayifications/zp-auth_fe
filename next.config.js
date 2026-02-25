@@ -50,13 +50,8 @@ const nextConfig = {
       },
       {
         source: '/signup',
-        destination: '/register/user',
+        destination: '/register?tab=user',
         permanent: true
-      },
-      {
-        source: '/register',
-        destination: '/register/user',
-        permanent: false // Temporal por si queremos cambiar después
       }
     ]
   },

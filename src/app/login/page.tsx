@@ -6,16 +6,7 @@ import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import {
-  Eye,
-  EyeOff,
-  LogIn,
-  Mail,
-  Lock,
-  Shield,
-  Apple,
-  Check,
-} from 'lucide-react';
+import { Eye, EyeOff, LogIn, Mail, Lock, Shield, Check } from 'lucide-react';
 import authService from '@/lib/auth-service';
 
 const loginSchema = z.object({
@@ -24,32 +15,6 @@ const loginSchema = z.object({
 });
 
 type LoginFormData = z.infer<typeof loginSchema>;
-
-const GoogleIcon = () => (
-  <svg
-    viewBox="0 0 24 24"
-    aria-hidden="true"
-    className="h-5 w-5"
-    focusable="false"
-  >
-    <path
-      fill="#EA4335"
-      d="M12 10.2v3.8h5.34c-.2 1.22-.95 2.27-2.03 2.96l3.28 2.54A9.73 9.73 0 0022 12c0-.73-.07-1.44-.2-2.1z"
-    />
-    <path
-      fill="#34A853"
-      d="M4.98 13.68a5.83 5.83 0 010-3.36L1.64 7.73A9.62 9.62 0 002 12a9.62 9.62 0 001.64 4.27z"
-    />
-    <path
-      fill="#FBBC05"
-      d="M12 5.2c1.44 0 2.73.5 3.74 1.49l2.8-2.8A9.64 9.64 0 0012 2.2a9.62 9.62 0 00-8.36 5.53l3.34 2.59C7.55 7.38 9.55 5.2 12 5.2z"
-    />
-    <path
-      fill="#4285F4"
-      d="M12 21.8c2.46 0 4.66-.8 6.24-2.17l-3.3-2.56c-.9.59-2.04.93-2.94.93-2.44 0-4.5-1.63-5.23-3.91l-3.32 2.59A9.64 9.64 0 0012 21.8z"
-    />
-  </svg>
-);
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -232,7 +197,7 @@ export default function LoginPage() {
             <div className="mt-8 text-center text-sm text-white/70">
               ¿No tienes una cuenta?
               <Link
-                href="/register/user"
+                href="/register"
                 className="ml-2 font-semibold text-[#44C2BE] hover:text-[#36a5a1]"
               >
                 Regístrate
