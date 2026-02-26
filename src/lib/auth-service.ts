@@ -10,6 +10,7 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: true,
 });
 
 // Error handler for backend responses
@@ -71,6 +72,22 @@ export const authService = {
     }
   },
 
+  async getActiveSession(): Promise<UnifiedLoginData | null> {
+    try {
+      const response = await api.get<LoginResponse>(API_CONFIG.ENDPOINTS.AUTH_SESSION);
+      if (!response.data?.data) {
+        return null;
+      }
+      return response.data.data;
+    } catch (error) {
+      const axiosError = error as AxiosError;
+      if (axiosError.response?.status === 401) {
+        return null;
+      }
+      throw new Error(handleBackendError(axiosError));
+    }
+  },
+
   // Register user
   async registerUser(userData: {
     name: string;
@@ -122,17 +139,17 @@ export const authService = {
     }
   },
 
-  // Redirect to appropriate frontend using handoff code
+  // Redirect to appropriate frontend using server-provided URL
   redirectToApp(loginData: UnifiedLoginData) {
-    const { redirect_url: redirectUrl, handoff_code: handoffCode } = loginData;
+    const { redirect_url: redirectUrl } = loginData;
 
-    if (!redirectUrl || !handoffCode) {
+    if (!redirectUrl) {
       throw new Error('Invalid redirect information from server');
     }
 
-    const destination = new URL(redirectUrl);
-    destination.searchParams.set('handoff_code', handoffCode);
-
+    const destination = redirectUrl.startsWith('http')
+      ? new URL(redirectUrl)
+      : new URL(redirectUrl, window.location.origin);
     window.location.href = destination.toString();
   },
 };

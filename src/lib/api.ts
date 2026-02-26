@@ -5,12 +5,8 @@ export const API_CONFIG = {
     UNIFIED_LOGIN: '/api/unified-login',
     USER_REGISTER: '/api/users',
     PARTNER_REGISTER: '/api/partners',
-    REFRESH_TOKEN: '/api/refresh-token',
+    AUTH_SESSION: '/api/auth/session',
   },
-  REDIRECT_URLS: {
-    USERS_APP: 'http://localhost:3002',
-    PARTNERS_APP: 'http://localhost:3003',
-  }
 };
 
 // Backend standardized error response structure
@@ -40,7 +36,9 @@ export interface BackendSuccessResponse<T = unknown> {
 export interface UnifiedLoginData {
   type: 'user' | 'partner';
   redirect_url: string;
-  handoff_code: string;
+  message?: string;
+  user?: UserSummary;
+  partner?: PartnerSummary;
 }
 
 export type LoginResponse = BackendSuccessResponse<UnifiedLoginData>;
