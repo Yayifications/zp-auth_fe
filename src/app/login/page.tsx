@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
+import { set, z } from 'zod';
 import { Eye, EyeOff, LogIn, Mail, Lock, Shield, Check } from 'lucide-react';
 import authService from '@/lib/auth-service';
 
@@ -32,7 +32,6 @@ export default function LoginPage() {
   });
 
   useEffect(() => {
-    let isActive = true;
 
     const checkSession = async () => {
       try {
@@ -40,21 +39,17 @@ export default function LoginPage() {
         if (session) {
           authService.redirectToApp(session);
           return;
+        }else{
+          setIsCheckingSession(false);
         }
       } catch (error) {
         console.warn('Session check failed', error);
-      } finally {
-        if (isActive) {
-          setIsCheckingSession(false);
-        }
-      }
+      } 
     };
 
     checkSession();
 
-    return () => {
-      isActive = false;
-    };
+   
   }, []);
 
   const onSubmit = async (data: LoginFormData) => {
@@ -65,11 +60,10 @@ export default function LoginPage() {
       const loginData = await authService.unifiedLogin(data.email, data.password);
       authService.redirectToApp(loginData);
     } catch (error: unknown) {
+      setIsLoading(false);
       const err = error as Error;
       setError('root', { message: err.message || 'Error al iniciar sesion' });
-    } finally {
-      setIsLoading(false);
-    }
+    } 
   };
 
   return (

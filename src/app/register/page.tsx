@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import {
@@ -26,8 +26,7 @@ const userSchema = z.object({
   email: z.string().email('Correo inválido'),
   phone_number: z
     .string()
-    .min(8, 'Teléfono inválido')
-    .max(20, 'Máximo 20 caracteres'),
+    .regex(/^\d{8}$/, 'Teléfono inválido (8 dígitos)'),
   dui: z.string().min(8, 'DUI inválido').max(20, 'Máximo 20 caracteres'),
   password: z.string().min(8, 'Mínimo 8 caracteres').max(72, 'Máximo 72 caracteres'),
   birthday: z.string().min(1, 'Selecciona tu fecha de nacimiento'),
@@ -42,7 +41,7 @@ const partnerSchema = z.object({
   businessName: z.string().min(2, 'Nombre inválido').max(100, 'Máximo 100 caracteres'),
   contact_name: z.string().min(2, 'Nombre inválido').max(100, 'Máximo 100 caracteres'),
   email: z.string().email('Correo inválido'),
-  phone: z.string().min(8, 'Teléfono inválido').max(20, 'Máximo 20 caracteres'),
+  phone: z.string().regex(/^\d{8}$/, 'Teléfono inválido (8 dígitos)'),
   address: z.string().min(10, 'Dirección demasiado corta').max(200, 'Máximo 200 caracteres'),
   password: z.string().min(8, 'Mínimo 8 caracteres').max(72, 'Máximo 72 caracteres'),
   terms: z
@@ -54,6 +53,25 @@ type PartnerFormData = z.infer<typeof partnerSchema>;
 
 const inputClass =
   'w-full rounded-full border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-800 placeholder-gray-400 focus:border-teal-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-teal-200 transition';
+
+const sanitizeDigits = (value: string, maxLength: number) =>
+  value.replace(/\D/g, '').slice(0, maxLength);
+
+const formatPhoneDisplay = (value?: string) => {
+  const digits = (value || '').slice(0, 8);
+  if (digits.length <= 4) {
+    return digits;
+  }
+  return `${digits.slice(0, 4)}-${digits.slice(4)}`;
+};
+
+const formatDuiDisplay = (value?: string) => {
+  const digits = (value || '').slice(0, 9);
+  if (digits.length <= 8) {
+    return digits;
+  }
+  return `${digits.slice(0, 8)}-${digits.slice(8)}`;
+};
 
 export default function RegisterPage() {
   const searchParams = useSearchParams();
@@ -76,6 +94,7 @@ export default function RegisterPage() {
     handleSubmit: handleUserSubmit,
     formState: { errors: userErrors },
     reset: resetUserForm,
+    control: userControl,
   } = useForm<UserFormData>({
     resolver: zodResolver(userSchema),
     defaultValues: {
@@ -95,6 +114,7 @@ export default function RegisterPage() {
     handleSubmit: handlePartnerSubmit,
     formState: { errors: partnerErrors },
     reset: resetPartnerForm,
+    control: partnerControl,
   } = useForm<PartnerFormData>({
     resolver: zodResolver(partnerSchema),
     defaultValues: {
@@ -289,11 +309,23 @@ export default function RegisterPage() {
               <label className="text-sm text-gray-600">Número de teléfono</label>
               <div className="mt-1 flex items-center gap-2 rounded-full border border-transparent bg-gray-50 px-4">
                 <Phone className="h-4 w-4 text-gray-400" />
-                <input
-                  type="tel"
-                  className={`${inputClass} border-none bg-transparent px-0`}
-                  placeholder="61246644"
-                  {...registerUserField('phone_number')}
+                <Controller
+                  control={userControl}
+                  name="phone_number"
+                  render={({ field }) => (
+                    <input
+                      type="tel"
+                      className={`${inputClass} border-none bg-transparent px-0`}
+                      placeholder="61246644"
+                      value={formatPhoneDisplay(field.value)}
+                      onChange={(event) => {
+                        const digits = sanitizeDigits(event.target.value, 8);
+                        field.onChange(digits);
+                      }}
+                      onBlur={field.onBlur}
+                      ref={field.ref}
+                    />
+                  )}
                 />
               </div>
               {userErrors.phone_number && (
@@ -303,11 +335,23 @@ export default function RegisterPage() {
 
             <div>
               <label className="text-sm text-gray-600">DUI</label>
-              <input
-                type="text"
-                className={inputClass}
-                placeholder="012345678-9"
-                {...registerUserField('dui')}
+              <Controller
+                control={userControl}
+                name="dui"
+                render={({ field }) => (
+                  <input
+                    type="text"
+                    className={inputClass}
+                    placeholder="01234567-8"
+                    value={formatDuiDisplay(field.value)}
+                    onChange={(event) => {
+                      const digits = sanitizeDigits(event.target.value, 9);
+                      field.onChange(digits);
+                    }}
+                    onBlur={field.onBlur}
+                    ref={field.ref}
+                  />
+                )}
               />
               {userErrors.dui && (
                 <p className="mt-1 text-xs text-red-600">{userErrors.dui.message}</p>
@@ -429,11 +473,23 @@ export default function RegisterPage() {
               <label className="text-sm text-gray-600">Número de teléfono</label>
               <div className="mt-1 flex items-center gap-2 rounded-full border border-transparent bg-gray-50 px-4">
                 <Phone className="h-4 w-4 text-gray-400" />
-                <input
-                  type="tel"
-                  className={`${inputClass} border-none bg-transparent px-0`}
-                  placeholder="71234567"
-                  {...registerPartnerField('phone')}
+                <Controller
+                  control={partnerControl}
+                  name="phone"
+                  render={({ field }) => (
+                    <input
+                      type="tel"
+                      className={`${inputClass} border-none bg-transparent px-0`}
+                      placeholder="71234567"
+                      value={formatPhoneDisplay(field.value)}
+                      onChange={(event) => {
+                        const digits = sanitizeDigits(event.target.value, 8);
+                        field.onChange(digits);
+                      }}
+                      onBlur={field.onBlur}
+                      ref={field.ref}
+                    />
+                  )}
                 />
               </div>
               {partnerErrors.phone && (

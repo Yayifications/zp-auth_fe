@@ -17,6 +17,13 @@ const api = axios.create({
 export const handleBackendError = (error: AxiosError): string => {
   if (error.response?.data) {
     const backendError = error.response.data as BackendError;
+    const normalizedDetails = backendError.details?.toLowerCase() || backendError.message?.toLowerCase() || '';
+    if (
+      normalizedDetails.includes('duplicate key value') ||
+      normalizedDetails.includes('idx_users_email')
+    ) {
+      return 'Ya existe una cuenta con este correo electronico. Inicia sesion.';
+    }
     
     // Handle validation errors with field details
     if (backendError.validation_errors && backendError.validation_errors.length > 0) {
@@ -28,29 +35,29 @@ export const handleBackendError = (error: AxiosError): string => {
     // Handle specific error codes
     switch (backendError.code) {
       case 'UNAUTHORIZED':
-        return backendError.message || 'Invalid email or password';
+        return backendError.message || 'Correo o contrasena invalida';
       case 'VALIDATION_ERROR':
-        return backendError.message || 'Please check your input data';
+        return backendError.message || 'Verifica la informacion ingresada';
       case 'CONFLICT':
-        return backendError.message || 'This email is already registered';
+        return backendError.message || 'Ya existe una cuenta con este correo electronico. Inicia sesion.';
       case 'NOT_FOUND':
-        return backendError.message || 'User not found';
+        return backendError.message || 'Usuario no encontrado';
       case 'FORBIDDEN':
-        return backendError.message || 'Access denied';
+        return backendError.message || 'Acceso denegado';
       case 'INTERNAL_SERVER_ERROR':
-        return 'Server error. Please try again later.';
+        return 'Error del servidor. Intenta nuevamente mas tarde.';
       default:
-        return backendError.message || 'An error occurred. Please try again.';
+        return backendError.message || 'Ocurrio un error. Intenta de nuevo.';
     }
   }
   
   // Handle network errors
   if (error.code === 'ECONNREFUSED' || error.message.includes('Network Error')) {
-    return 'Cannot connect to server. Please check if the backend is running.';
+    return 'No se puede conectar con el servidor. Verifica que el backend este activo.';
   }
   
   // Fallback error message
-  return error.message || 'An unexpected error occurred';
+  return error.message || 'Ocurrio un error inesperado';
 };
 
 // Auth service
@@ -63,7 +70,7 @@ export const authService = {
         password,
       });
       if (!response.data?.data) {
-        throw new Error('Invalid response from server');
+        throw new Error('Respuesta invalida del servidor');
       }
 
       return response.data.data;
@@ -144,7 +151,7 @@ export const authService = {
     const { redirect_url: redirectUrl } = loginData;
 
     if (!redirectUrl) {
-      throw new Error('Invalid redirect information from server');
+      throw new Error('Informacion de redireccion invalida desde el servidor');
     }
 
     const destination = redirectUrl.startsWith('http')
