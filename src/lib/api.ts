@@ -39,6 +39,7 @@ export interface UnifiedLoginData {
   message?: string;
   user?: UserSummary;
   partner?: PartnerSummary;
+  handoff_code?: string;
 }
 
 export type LoginResponse = BackendSuccessResponse<UnifiedLoginData>;

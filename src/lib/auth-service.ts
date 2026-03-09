@@ -69,11 +69,17 @@ export const authService = {
         email,
         password,
       });
-      if (!response.data?.data) {
+
+      const loginData = response.data?.data;
+      if (!loginData) {
         throw new Error('Respuesta invalida del servidor');
       }
 
-      return response.data.data;
+      if (!loginData.handoff_code) {
+        throw new Error('No se recibio el codigo de handoff del servidor');
+      }
+
+      return loginData;
     } catch (error) {
       throw new Error(handleBackendError(error as AxiosError));
     }
@@ -82,13 +88,14 @@ export const authService = {
   async getActiveSession(): Promise<UnifiedLoginData | null> {
     try {
       const response = await api.get<LoginResponse>(API_CONFIG.ENDPOINTS.AUTH_SESSION);
-      if (!response.data?.data) {
+      const sessionData = response.data?.data;
+      if (!sessionData?.handoff_code || !sessionData.redirect_url) {
         return null;
       }
-      return response.data.data;
+      return sessionData;
     } catch (error) {
       const axiosError = error as AxiosError;
-      if (axiosError.response?.status === 401) {
+      if (axiosError.response?.status === 401 || axiosError.response?.status === 404) {
         return null;
       }
       throw new Error(handleBackendError(axiosError));
@@ -148,15 +155,22 @@ export const authService = {
 
   // Redirect to appropriate frontend using server-provided URL
   redirectToApp(loginData: UnifiedLoginData) {
-    const { redirect_url: redirectUrl } = loginData;
+    const { redirect_url: redirectUrl, handoff_code: handoffCode } = loginData;
 
     if (!redirectUrl) {
       throw new Error('Informacion de redireccion invalida desde el servidor');
     }
 
+    if (!handoffCode) {
+      throw new Error('No se encontro el codigo de handoff para completar el inicio de sesion');
+    }
+
     const destination = redirectUrl.startsWith('http')
       ? new URL(redirectUrl)
       : new URL(redirectUrl, window.location.origin);
+
+    destination.searchParams.set('handoff_code', handoffCode);
+
     window.location.href = destination.toString();
   },
 };
