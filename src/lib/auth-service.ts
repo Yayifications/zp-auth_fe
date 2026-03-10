@@ -1,5 +1,5 @@
 import axios, { AxiosError } from 'axios';
-import { API_CONFIG, LoginResponse, RegisterResponse, BackendError, UnifiedLoginData } from './api';
+import { API_CONFIG, LoginResponse, RegisterResponse, BackendError, UnifiedLoginData, BackendSuccessResponse } from './api';
 
 // Configure axios defaults
 axios.defaults.timeout = 10000;
@@ -12,6 +12,24 @@ const api = axios.create({
   },
   withCredentials: true,
 });
+
+const SPA_REDIRECTS: Record<UnifiedLoginData['type'], string | undefined> = {
+  user: process.env.NEXT_PUBLIC_USER_APP_URL,
+  partner: process.env.NEXT_PUBLIC_PARTNER_APP_URL,
+};
+
+const unwrapResponse = <T>(response: { data?: BackendSuccessResponse<T> }): T => {
+  const envelope = response?.data;
+  if (!envelope || typeof envelope !== 'object') {
+    throw new Error('Respuesta invalida del servidor');
+  }
+
+  if (envelope.data === undefined || envelope.data === null) {
+    throw new Error('No se recibieron datos desde el servidor');
+  }
+
+  return envelope.data;
+};
 
 // Error handler for backend responses
 export const handleBackendError = (error: AxiosError): string => {
@@ -70,10 +88,7 @@ export const authService = {
         password,
       });
 
-      const loginData = response.data?.data;
-      if (!loginData) {
-        throw new Error('Respuesta invalida del servidor');
-      }
+      const loginData = unwrapResponse<UnifiedLoginData>(response);
 
       if (!loginData.handoff_code) {
         throw new Error('No se recibio el codigo de handoff del servidor');
@@ -88,10 +103,12 @@ export const authService = {
   async getActiveSession(): Promise<UnifiedLoginData | null> {
     try {
       const response = await api.get<LoginResponse>(API_CONFIG.ENDPOINTS.AUTH_SESSION);
-      const sessionData = response.data?.data;
-      if (!sessionData?.handoff_code || !sessionData.redirect_url) {
+      const sessionData = unwrapResponse<UnifiedLoginData>(response);
+
+      if (!sessionData?.handoff_code) {
         return null;
       }
+
       return sessionData;
     } catch (error) {
       const axiosError = error as AxiosError;
@@ -155,19 +172,22 @@ export const authService = {
 
   // Redirect to appropriate frontend using server-provided URL
   redirectToApp(loginData: UnifiedLoginData) {
-    const { redirect_url: redirectUrl, handoff_code: handoffCode } = loginData;
-
-    if (!redirectUrl) {
-      throw new Error('Informacion de redireccion invalida desde el servidor');
-    }
+    const { redirect_url: redirectUrl, handoff_code: handoffCode, type } = loginData;
 
     if (!handoffCode) {
       throw new Error('No se encontro el codigo de handoff para completar el inicio de sesion');
     }
 
-    const destination = redirectUrl.startsWith('http')
-      ? new URL(redirectUrl)
-      : new URL(redirectUrl, window.location.origin);
+    const fallbackRedirect = SPA_REDIRECTS[type];
+    const destinationUrl = redirectUrl || fallbackRedirect;
+
+    if (!destinationUrl) {
+      throw new Error('No se encontro una aplicacion destino para completar el inicio de sesion');
+    }
+
+    const destination = destinationUrl.startsWith('http')
+      ? new URL(destinationUrl)
+      : new URL(destinationUrl, window.location.origin);
 
     destination.searchParams.set('handoff_code', handoffCode);
 

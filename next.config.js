@@ -60,7 +60,9 @@ const nextConfig = {
   env: {
     NEXT_PUBLIC_APP_NAME: 'ZassPass Auth',
     NEXT_PUBLIC_APP_VERSION: '1.0.0',
-    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
+    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080',
+    NEXT_PUBLIC_USER_APP_URL: process.env.NEXT_PUBLIC_USER_APP_URL || 'http://localhost:3002',
+    NEXT_PUBLIC_PARTNER_APP_URL: process.env.NEXT_PUBLIC_PARTNER_APP_URL || 'http://localhost:3003'
   },
 
   // Configuraciones de TypeScript y ESLint

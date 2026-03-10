@@ -15,6 +15,8 @@ const loginSchema = z.object({
 });
 
 type LoginFormData = z.infer<typeof loginSchema>;
+const HANDOFF_ERROR_MESSAGE =
+  'No se pudo generar el codigo temporal para completar el inicio de sesion. Intenta nuevamente en unos segundos.';
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -32,24 +34,21 @@ export default function LoginPage() {
   });
 
   useEffect(() => {
-
     const checkSession = async () => {
       try {
         const session = await authService.getActiveSession();
         if (session) {
           authService.redirectToApp(session);
           return;
-        }else{
-          setIsCheckingSession(false);
         }
       } catch (error) {
         console.warn('Session check failed', error);
-      } 
+      } finally {
+        setIsCheckingSession(false);
+      }
     };
 
     checkSession();
-
-   
   }, []);
 
   const onSubmit = async (data: LoginFormData) => {
@@ -58,11 +57,22 @@ export default function LoginPage() {
 
     try {
       const loginData = await authService.unifiedLogin(data.email, data.password);
+
+      if (!loginData?.handoff_code) {
+        setError('root', { message: HANDOFF_ERROR_MESSAGE });
+        setIsLoading(false);
+        return;
+      }
+
       authService.redirectToApp(loginData);
     } catch (error: unknown) {
       setIsLoading(false);
       const err = error as Error;
-      setError('root', { message: err.message || 'Error al iniciar sesion' });
+      const normalizedMessage = err.message?.toLowerCase() || '';
+      const errorMessage = normalizedMessage.includes('handoff')
+        ? HANDOFF_ERROR_MESSAGE
+        : err.message || 'Error al iniciar sesion';
+      setError('root', { message: errorMessage });
     } 
   };
 

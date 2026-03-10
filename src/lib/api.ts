@@ -35,11 +35,11 @@ export interface BackendSuccessResponse<T = unknown> {
 // Response types from backend
 export interface UnifiedLoginData {
   type: 'user' | 'partner';
-  redirect_url: string;
+  redirect_url?: string | null;
+  handoff_code: string;
   message?: string;
   user?: UserSummary;
   partner?: PartnerSummary;
-  handoff_code?: string;
 }
 
 export type LoginResponse = BackendSuccessResponse<UnifiedLoginData>;
