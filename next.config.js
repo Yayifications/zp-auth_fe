@@ -62,7 +62,8 @@ const nextConfig = {
     NEXT_PUBLIC_APP_VERSION: '1.0.0',
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080',
     NEXT_PUBLIC_USER_APP_URL: process.env.NEXT_PUBLIC_USER_APP_URL || 'http://localhost:3002',
-    NEXT_PUBLIC_PARTNER_APP_URL: process.env.NEXT_PUBLIC_PARTNER_APP_URL || 'http://localhost:3003'
+    NEXT_PUBLIC_PARTNER_APP_URL: process.env.NEXT_PUBLIC_PARTNER_APP_URL || 'http://localhost:3003',
+    NEXT_PUBLIC_LOGIN_URL: process.env.NEXT_PUBLIC_LOGIN_URL || 'http://localhost:3001/login',
   },
 
   // Configuraciones de TypeScript y ESLint

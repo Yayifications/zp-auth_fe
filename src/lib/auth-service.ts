@@ -18,6 +18,45 @@ const SPA_REDIRECTS: Record<UnifiedLoginData['type'], string | undefined> = {
   partner: process.env.NEXT_PUBLIC_PARTNER_APP_URL,
 };
 
+const LOGIN_REDIRECT_URL = process.env.NEXT_PUBLIC_LOGIN_URL || 'http://localhost:3001/login';
+const AUTH_BYPASS_ENDPOINTS = [API_CONFIG.ENDPOINTS.UNIFIED_LOGIN];
+let loginRedirectScheduled = false;
+
+const shouldSkipLoginRedirect = (requestUrl?: string | null): boolean => {
+  if (!requestUrl) {
+    return false;
+  }
+
+  return AUTH_BYPASS_ENDPOINTS.some((endpoint) => requestUrl === endpoint || requestUrl.endsWith(endpoint));
+};
+
+const redirectToLoginPage = () => {
+  if (typeof window === 'undefined' || loginRedirectScheduled) {
+    return;
+  }
+
+  loginRedirectScheduled = true;
+  const resolvedUrl = LOGIN_REDIRECT_URL.startsWith('http')
+    ? LOGIN_REDIRECT_URL
+    : new URL(LOGIN_REDIRECT_URL, window.location.origin).toString();
+
+  window.location.href = resolvedUrl;
+};
+
+api.interceptors.response.use(
+  (response) => response,
+  (error: AxiosError) => {
+    const status = error.response?.status;
+    const requestUrl = error.config?.url;
+
+    if (status === 401 && !shouldSkipLoginRedirect(requestUrl)) {
+      redirectToLoginPage();
+    }
+
+    return Promise.reject(error);
+  }
+);
+
 const unwrapResponse = <T>(response: { data?: BackendSuccessResponse<T> }): T => {
   const envelope = response?.data;
   if (!envelope || typeof envelope !== 'object') {
