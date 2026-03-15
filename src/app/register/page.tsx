@@ -20,13 +20,20 @@ import authService from '@/lib/auth-service';
 
 type RegisterTab = 'user' | 'partner';
 
+const USER_PHONE_LENGTH = 8;
+const PARTNER_PHONE_MIN_LENGTH = 8;
+const PARTNER_PHONE_MAX_LENGTH = 11;
+
 const userSchema = z.object({
   firstName: z.string().min(2, 'Ingresa tu nombre').max(100, 'Máximo 100 caracteres'),
   lastName: z.string().min(2, 'Ingresa tus apellidos').max(100, 'Máximo 100 caracteres'),
   email: z.string().email('Correo inválido'),
   phone_number: z
     .string()
-    .regex(/^\d{8}$/, 'Teléfono inválido (8 dígitos)'),
+    .regex(
+      new RegExp(`^\\d{${USER_PHONE_LENGTH}}$`),
+      `Teléfono inválido (${USER_PHONE_LENGTH} dígitos)`
+    ),
   dui: z.string().min(8, 'DUI inválido').max(20, 'Máximo 20 caracteres'),
   password: z.string().min(8, 'Mínimo 8 caracteres').max(72, 'Máximo 72 caracteres'),
   birthday: z.string().min(1, 'Selecciona tu fecha de nacimiento'),
@@ -41,7 +48,12 @@ const partnerSchema = z.object({
   businessName: z.string().min(2, 'Nombre inválido').max(100, 'Máximo 100 caracteres'),
   contact_name: z.string().min(2, 'Nombre inválido').max(100, 'Máximo 100 caracteres'),
   email: z.string().email('Correo inválido'),
-  phone: z.string().regex(/^\d{8}$/, 'Teléfono inválido (8 dígitos)'),
+  phone: z
+    .string()
+    .regex(
+      new RegExp(`^\\d{${PARTNER_PHONE_MIN_LENGTH},${PARTNER_PHONE_MAX_LENGTH}}$`),
+      `Teléfono inválido (${PARTNER_PHONE_MIN_LENGTH} a ${PARTNER_PHONE_MAX_LENGTH} dígitos)`
+    ),
   address: z.string().min(10, 'Dirección demasiado corta').max(200, 'Máximo 200 caracteres'),
   password: z.string().min(8, 'Mínimo 8 caracteres').max(72, 'Máximo 72 caracteres'),
   terms: z
@@ -57,8 +69,8 @@ const inputClass =
 const sanitizeDigits = (value: string, maxLength: number) =>
   value.replace(/\D/g, '').slice(0, maxLength);
 
-const formatPhoneDisplay = (value?: string) => {
-  const digits = (value || '').slice(0, 8);
+const formatPhoneDisplay = (value?: string, maxLength = USER_PHONE_LENGTH) => {
+  const digits = (value || '').slice(0, maxLength);
   if (digits.length <= 4) {
     return digits;
   }
@@ -248,7 +260,11 @@ export default function RegisterPage() {
         </div>
 
         {activeTab === 'user' ? (
-          <form className="mt-8 space-y-4" onSubmit={handleUserSubmit(onSubmitUser)}>
+          <form
+            key="user-form"
+            className="mt-8 space-y-4"
+            onSubmit={handleUserSubmit(onSubmitUser)}
+          >
             {feedback.user.error && (
               <p className="rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-700">
                 {feedback.user.error}
@@ -317,9 +333,9 @@ export default function RegisterPage() {
                       type="tel"
                       className={`${inputClass} border-none bg-transparent px-0`}
                       placeholder="61246644"
-                      value={formatPhoneDisplay(field.value)}
+                      value={formatPhoneDisplay(field.value, USER_PHONE_LENGTH)}
                       onChange={(event) => {
-                        const digits = sanitizeDigits(event.target.value, 8);
+                        const digits = sanitizeDigits(event.target.value, USER_PHONE_LENGTH);
                         field.onChange(digits);
                       }}
                       onBlur={field.onBlur}
@@ -412,7 +428,11 @@ export default function RegisterPage() {
             </button>
           </form>
         ) : (
-          <form className="mt-8 space-y-4" onSubmit={handlePartnerSubmit(onSubmitPartner)}>
+          <form
+            key="partner-form"
+            className="mt-8 space-y-4"
+            onSubmit={handlePartnerSubmit(onSubmitPartner)}
+          >
             {feedback.partner.error && (
               <p className="rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-700">
                 {feedback.partner.error}
@@ -480,10 +500,10 @@ export default function RegisterPage() {
                     <input
                       type="tel"
                       className={`${inputClass} border-none bg-transparent px-0`}
-                      placeholder="71234567"
-                      value={formatPhoneDisplay(field.value)}
+                      placeholder="50371234567"
+                      value={formatPhoneDisplay(field.value, PARTNER_PHONE_MAX_LENGTH)}
                       onChange={(event) => {
-                        const digits = sanitizeDigits(event.target.value, 8);
+                        const digits = sanitizeDigits(event.target.value, PARTNER_PHONE_MAX_LENGTH);
                         field.onChange(digits);
                       }}
                       onBlur={field.onBlur}
