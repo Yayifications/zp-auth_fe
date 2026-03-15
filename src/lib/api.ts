@@ -5,7 +5,7 @@ export const API_CONFIG = {
     UNIFIED_LOGIN: '/api/unified-login',
     USER_REGISTER: '/api/users',
     PARTNER_REGISTER: '/api/partners',
-    AUTH_SESSION: '/api/auth/session',
+    AUTH_SESSION: '/api/auth/session/identity',
   },
 };
 

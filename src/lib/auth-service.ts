@@ -139,25 +139,6 @@ export const authService = {
     }
   },
 
-  async getActiveSession(): Promise<UnifiedLoginData | null> {
-    try {
-      const response = await api.get<LoginResponse>(API_CONFIG.ENDPOINTS.AUTH_SESSION);
-      const sessionData = unwrapResponse<UnifiedLoginData>(response);
-
-      if (!sessionData?.handoff_code) {
-        return null;
-      }
-
-      return sessionData;
-    } catch (error) {
-      const axiosError = error as AxiosError;
-      if (axiosError.response?.status === 401 || axiosError.response?.status === 404) {
-        return null;
-      }
-      throw new Error(handleBackendError(axiosError));
-    }
-  },
-
   // Register user
   async registerUser(userData: {
     name: string;

@@ -21,7 +21,7 @@ const HANDOFF_ERROR_MESSAGE =
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [isCheckingSession, setIsCheckingSession] = useState(true);
+  const [isCheckingSession, setIsCheckingSession] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
 
   const {
@@ -32,24 +32,6 @@ export default function LoginPage() {
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
   });
-
-  useEffect(() => {
-    const checkSession = async () => {
-      try {
-        const session = await authService.getActiveSession();
-        if (session) {
-          authService.redirectToApp(session);
-          return;
-        }
-      } catch (error) {
-        console.warn('Session check failed', error);
-      } finally {
-        setIsCheckingSession(false);
-      }
-    };
-
-    checkSession();
-  }, []);
 
   const onSubmit = async (data: LoginFormData) => {
     setIsLoading(true);
