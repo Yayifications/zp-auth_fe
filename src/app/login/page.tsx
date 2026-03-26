@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -21,7 +21,6 @@ const HANDOFF_ERROR_MESSAGE =
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [isCheckingSession, setIsCheckingSession] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
 
   const {
@@ -72,15 +71,6 @@ export default function LoginPage() {
       </div>
 
       <div className="relative flex min-h-screen items-center justify-center px-4 py-10">
-        {isCheckingSession && (
-          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-black/70 text-white">
-            <span className="mb-2 text-xs uppercase tracking-[0.4em] text-white/70">
-              Verificando sesion
-            </span>
-            <span className="h-10 w-10 animate-spin rounded-full border-2 border-white/60 border-t-transparent" />
-          </div>
-        )}
-
         <div className="w-full max-w-md space-y-6">
           <div className="flex flex-col items-center gap-2 text-center">
             <span className="text-xs uppercase tracking-[0.6em] text-white/80">
@@ -185,7 +175,7 @@ export default function LoginPage() {
 
               <button
                 type="submit"
-                disabled={isLoading || isCheckingSession}
+                disabled={isLoading}
                 className="flex w-full items-center justify-center gap-2 rounded-full bg-[#44C2BE] py-3 text-base font-semibold text-slate-900 transition hover:bg-[#3aa5a6] disabled:cursor-not-allowed disabled:opacity-70"
               >
                 {isLoading ? (

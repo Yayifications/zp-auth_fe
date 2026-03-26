@@ -18,7 +18,7 @@ const SPA_REDIRECTS: Record<UnifiedLoginData['type'], string | undefined> = {
   partner: process.env.NEXT_PUBLIC_PARTNER_APP_URL,
 };
 
-const LOGIN_REDIRECT_URL = process.env.NEXT_PUBLIC_LOGIN_URL || 'http://localhost:3001/login';
+const LOGIN_REDIRECT_URL = process.env.NEXT_PUBLIC_LOGIN_URL || '/login';
 const AUTH_BYPASS_ENDPOINTS = [API_CONFIG.ENDPOINTS.UNIFIED_LOGIN];
 let loginRedirectScheduled = false;
 

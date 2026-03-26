@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { Suspense, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { Controller, useForm } from 'react-hook-form';
@@ -85,7 +85,7 @@ const formatDuiDisplay = (value?: string) => {
   return `${digits.slice(0, 8)}-${digits.slice(8)}`;
 };
 
-export default function RegisterPage() {
+function RegisterPageContent() {
   const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState<RegisterTab>('user');
   const [submitting, setSubmitting] = useState<RegisterTab | null>(null);
@@ -574,5 +574,13 @@ export default function RegisterPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#f7f7f7]" />}>
+      <RegisterPageContent />
+    </Suspense>
   );
 }

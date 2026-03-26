@@ -1,11 +1,11 @@
 // API Configuration
 export const API_CONFIG = {
-  BASE_URL: 'http://localhost:8080',
+  BASE_URL: process.env.NEXT_PUBLIC_API_URL || '/api',
   ENDPOINTS: {
-    UNIFIED_LOGIN: '/api/unified-login',
-    USER_REGISTER: '/api/users',
-    PARTNER_REGISTER: '/api/partners',
-    AUTH_SESSION: '/api/auth/session/identity',
+    UNIFIED_LOGIN: '/unified-login',
+    USER_REGISTER: '/users',
+    PARTNER_REGISTER: '/partners',
+    AUTH_SESSION: '/session/identity',
   },
 };
 
